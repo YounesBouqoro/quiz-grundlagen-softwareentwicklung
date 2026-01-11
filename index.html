@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Java MC-Quiz – 12 aus Pool (Probeklausur-Stil, validiert)</title>
+  <title>Java MC-Quiz – 12 aus 1000 (Probeklausur-Stil, validiert)</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:24px;background:#f6f7fb;color:#0f172a}
     .app{max-width:980px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 12px 30px rgba(2,8,23,.08);overflow:hidden}
@@ -43,7 +43,7 @@
 <div class="app">
   <header>
     <div>
-      <h1>Java MC-Quiz – 12 aus Pool (Probeklausur-Stil)</h1>
+      <h1>Java MC-Quiz – 12 aus 1000 (Probeklausur-Stil)</h1>
       <div class="meta">Random 12 Fragen pro Durchlauf • Antworten berechnet • Self-Check beim Start</div>
     </div>
     <div class="meta"><b>Pool:</b> <span id="poolSize">0</span> • <b>Quiz:</b> 12</div>
@@ -136,13 +136,12 @@ function withShuffledOptions(q) {
 
 /** ---------- Generators (safe, computed) ---------- **/
 let nextId = 1;
-
 function mkQ({title, code=null, options, correctIndex, explain}) {
   return { id: nextId++, title, code, options, correctIndex, explain };
 }
 
 function mkSingleCorrectOptions(correctText, wrongTexts) {
-  const options = uniq([correctText, ...wrongTexts]).slice(0, 4);
+  const options = uniq([correctText, ...wrongTexts]).slice(0,4);
   while (options.length < 4) options.push(`(Ablenkung ${options.length})`);
   const correctIndex = options.indexOf(correctText);
   return { options, correctIndex };
@@ -225,7 +224,7 @@ function genIf(n) {
   for (let i=0;i<n;i++){
     const x = (i%2===0) ? 10 : 0;
     const cond = (i%3===0) ? "x < 5" : "x > 5";
-    const condTrue = eval(`${x} ${cond.replace("x","")}`); // safe in this controlled pattern
+    const condTrue = eval(`${x} ${cond.replace("x","")}`); // controlled pattern
     const code =
 `int x = ${x};
 
@@ -487,14 +486,26 @@ function genArrayList(n) {
       a: "remove(int index) löscht an Position index",
       wrong: ["remove(int index) löscht den Wert index immer als Element", "remove() gibt boolean zurück", "remove löscht nie, sondern markiert nur"],
       ex: "Überladung: remove(index) vs remove(Object). Bei Integer kann das tricky sein."
+    },
+    {
+      q: "Wie ersetzt du ein Element an Position i?",
+      a: "list.set(i, wert)",
+      wrong: ["list.replace(i, wert)", "list.put(i, wert)", "list.add(i, wert) ersetzt automatisch"],
+      ex: "set(index, value) ersetzt; add(index, value) fügt ein und verschiebt."
+    },
+    {
+      q: "Was liefert list.contains(x)?",
+      a: "true/false, ob x enthalten ist",
+      wrong: ["Index von x", "Anzahl von x", "Compilerfehler"],
+      ex: "contains prüft enthalten? und liefert boolean."
     }
   ];
 
   for (let i = 0; i < n; i++) {
     const b = base[i % base.length];
-    if (i % 2 === 0 && b.q.includes("ArrayList")) {
-      const title = "Welche Zeile ist korrekt?";
-      const code = `import java.util.*;\n\n// ...\n// Wähle die richtige Initialisierung`;
+    if (i % 3 === 0) {
+      const title = "Was passiert / welche Aussage ist korrekt?";
+      const code = `import java.util.*;\nArrayList<Integer> list = new ArrayList<>();\nlist.add(1);\nlist.add(2);\n// ...`;
       const { options, correctIndex } = mkSingleCorrectOptions(b.a, b.wrong);
       qs.push(mkQ({ title, code, options, correctIndex, explain: b.ex }));
     } else {
@@ -505,53 +516,48 @@ function genArrayList(n) {
   return qs;
 }
 
-/** Topic: Transfer / SE-Grundlagen (aus den Textfragen) */
+/** Topic: Transfer / SE-Grundlagen (aus deinen Textfragen) */
 function genTransferSE(n) {
   const qs = [];
   const base = [
-    // Lastenheft vs Pflichtenheft
     { q: "Lastenheft: Perspektive?", a: "Auftraggeber", wrong: ["Auftragnehmer", "Tester", "Entwicklerteam"],
       ex: "Lastenheft beschreibt WAS das System leisten soll – aus Auftraggeber-Sicht." },
     { q: "Pflichtenheft: Perspektive?", a: "Auftragnehmer", wrong: ["Auftraggeber", "Nutzer", "Projektcontrolling"],
       ex: "Pflichtenheft beschreibt WIE Anforderungen umgesetzt werden – aus Auftragnehmer-Sicht." },
     { q: "Welche 3 Elemente passen typischerweise ins Lastenheft?", a: "Projektbeschreibung + Anforderungen + Rahmenbedingungen",
       wrong: ["Systemarchitektur + technische Umsetzung + Change-Management","Unit-Tests + Integrationstests + Abnahmetests","Code-Struktur + Klassenhierarchie + Methodenliste"],
-      ex: "Lastenheft: Anforderungen + organisatorischer Rahmen (z.B. Budget/Einschränkungen)." },
+      ex: "Lastenheft: funktionale/nicht-funktionale Anforderungen + organisatorischer Rahmen (Budget/Einschränkungen)." },
     { q: "Welche 3 Elemente passen typischerweise ins Pflichtenheft?", a: "Systemarchitektur + technische Umsetzung + Zeit/Projektplan",
       wrong: ["Wünsche/Ziele + grobe Idee + Marketingstrategie","Budget + Einschränkungen + Projektbeschreibung","Stakeholderliste + Persona + Customer Journey"],
       ex: "Pflichtenheft: Architektur, technische Umsetzung, Zeit-/Projektplan inkl. Change-Management." },
 
-    // Top-Down vs Bottom-Up
     { q: "Top-Down beginnt typischerweise womit?", a: "Übergeordneten Anforderungen",
       wrong: ["Konkreten Details", "Unit-Tests", "Datenbanktabellen"],
-      ex: "Top-Down: vom Groben ins Detail; danach Validierung." },
+      ex: "Top-Down: vom Groben ins Detail; anschließend Validierung." },
     { q: "Bottom-Up beginnt typischerweise womit?", a: "Konkreten Details/Modulen",
       wrong: ["Vision/Strategie", "Pflichtenheft", "Grobkonzept"],
-      ex: "Bottom-Up: Details → Module → Gesamtanforderungen; danach Validierung." },
+      ex: "Bottom-Up: Details → Module → Gesamtanforderungen; anschließend Validierung." },
 
-    // Vorgehensmodelle
     { q: "Wasserfallmodell ist am besten beschrieben als …", a: "Sequenziell: Phasen nacheinander",
       wrong: ["Iterativ: kurze Zyklen", "Parallel: alle Phasen gleichzeitig", "Ohne Tests"],
       ex: "Wasserfall: Analyse → Entwurf → Implementierung → Test (streng nacheinander)." },
-    { q: "Was ist der Kern-Unterschied V-Modell vs Wasserfall?", a: "Jeder Entwicklungsphase ist eine Testphase zugeordnet",
+    { q: "Kern-Unterschied V-Modell vs Wasserfall?", a: "Jeder Entwicklungsphase ist eine Testphase zugeordnet",
       wrong: ["Es gibt keine Tests", "Es ist immer agil", "Es hat keine Phasen"],
       ex: "V-Modell koppelt Entwicklung + passende Testphase für Qualität/Nachvollziehbarkeit." },
     { q: "Agil bedeutet hier primär …", a: "Iterationen + flexible Anpassung + kontinuierlich lauffähige Software",
       wrong: ["Nur einmal liefern am Ende", "Keine Dokumentation erlaubt", "Phasen strikt nacheinander"],
       ex: "Agil: kurze Zyklen, Feedback, Anpassung, laufende Inkremente." },
 
-    // Schwierigkeiten Anforderungsanalyse
-    { q: "Welche Schwierigkeit ist typisch in der Anforderungsanalyse?", a: "Kunde benennt Anforderungen unkonkret (nur Wünsche/Ziele)",
+    { q: "Typische Schwierigkeit in der Anforderungsanalyse?", a: "Kunde benennt Anforderungen unkonkret (nur Wünsche/Ziele)",
       wrong: ["Anforderungen sind immer vollständig", "Fachleute sind immer verfügbar", "Es gibt nie Änderungen"],
       ex: "Oft fehlen konkrete Anforderungen; nur Ziele/Wünsche werden geäußert." },
-    { q: "Was meint man mit 'hidden agenda' im Kontext Anforderungsanalyse?", a: "Beteiligte verzerren Anforderungen bewusst/unbewusst",
+    { q: "Was meint 'hidden agenda' in der Anforderungsanalyse?", a: "Beteiligte verzerren Anforderungen bewusst/unbewusst",
       wrong: ["Es gibt geheime Passwörter", "Der Code ist verschlüsselt", "Das Lastenheft ist automatisch korrekt"],
       ex: "Analyseteam/Kunde können Interessen verfolgen und Anforderungen verzerren." },
     { q: "Welche Aussage ist korrekt?", a: "Selbstverständliche Anforderungen werden oft nicht erwähnt",
       wrong: ["Selbstverständliches wird immer explizit genannt", "Nicht-funktionale Anforderungen gibt es nicht", "Änderungen kommen nur am Anfang vor"],
-      ex: "Viele Anforderungen gelten als 'klar' und werden nicht ausgesprochen – Risiko für Missverständnisse." },
+      ex: "Viele Anforderungen gelten als klar und werden nicht ausgesprochen → Missverständnisse." },
 
-    // Methoden Software Engineering
     { q: "Heuristische Methoden sind …", a: "Erfahrungsbasierte Analyse-/Entwurfstechniken (z.B. OO-Modellierung)",
       wrong: ["Mathematisch formal bewiesen", "Nur Prototypen ohne Struktur", "Reine Code-Formatierung"],
       ex: "Heuristisch = praxis-/erfahrungsbasiert, strukturiert modellieren/entwerfen." },
@@ -571,11 +577,299 @@ function genTransferSE(n) {
   return qs;
 }
 
-/** ---------- Build (expandable) ---------- **/
-function buildCatalog() {
+/** NEW Topic: Syntax-Traps (Compilerfehler vs Laufzeit vs Ausgabe) */
+function genSyntaxTraps(n) {
+  const qs = [];
+  const base = [
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int x = 5
+    System.out.println(x);
+  }
+}`,
+      correct: "Compilerfehler",
+      wrong: ["Ausgabe: 5", "Exception", "Ausgabe: 0"],
+      ex: "Nach 'int x = 5' fehlt das Semikolon ; → Compilerfehler."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    System.out.println("Hi");
+  // fehlende Klammer
+}`,
+      correct: "Compilerfehler",
+      wrong: ["Ausgabe: Hi", "Exception", "Ausgabe: (leer)"],
+      ex: "Eine geschweifte Klammer } fehlt → Compilerfehler."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int x = 1;
+    if (x > 0) {
+      System.out.println("A");
+    else
+      System.out.println("B");
+  }
+}`,
+      correct: "Compilerfehler",
+      wrong: ["Ausgabe: A", "Ausgabe: B", "Exception"],
+      ex: "else ohne passende if-Struktur/Block → Compilerfehler (Syntax)."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    System.out.println("A");
+    System.out.println("B"));
+  }
+}`,
+      correct: "Compilerfehler",
+      wrong: ["Ausgabe: AB", "Ausgabe: A\\nB", "Exception"],
+      ex: "Eine schließende Klammer ')' ist zu viel → Compilerfehler."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int x = 5;
+    System.out.println(x/0);
+  }
+}`,
+      correct: "Exception",
+      wrong: ["Compilerfehler", "Ausgabe: 0", "Ausgabe: Infinity"],
+      ex: "Division durch 0 bei int → Laufzeitfehler (ArithmeticException)."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int[] a = {1,2};
+    System.out.println(a[2]);
+  }
+}`,
+      correct: "Exception",
+      wrong: ["Compilerfehler", "Ausgabe: 2", "Ausgabe: 0"],
+      ex: "a hat Indizes 0..1, a[2] → IndexOutOfBoundsException (Laufzeit)."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    System.out.println("Hello);
+  }
+}`,
+      correct: "Compilerfehler",
+      wrong: ["Ausgabe: Hello", "Exception", "Ausgabe: (leer)"],
+      ex: "String-Literal nicht geschlossen (fehlendes \") → Compilerfehler."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int x = 3;
+    if (x > 2)
+      System.out.print("A");
+      System.out.print("B");
+  }
+}`,
+      correct: "Ausgabe: AB",
+      wrong: ["Ausgabe: A", "Ausgabe: B", "Compilerfehler"],
+      ex: "Ohne {} gehört nur die nächste Zeile zur if; x>2 true → A; B kommt immer → AB."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int x = 1;
+    if (x = 1) System.out.println("A");
+  }
+}`,
+      correct: "Compilerfehler",
+      wrong: ["Ausgabe: A", "Ausgabe: (leer)", "Exception"],
+      ex: "In if muss boolean stehen. 'x = 1' ist Zuweisung (int), kein boolean → Compilerfehler."
+    },
+    {
+      title: "Was passiert beim Kompilieren/Ausführen?",
+      code:
+`public class T {
+  public static void main(String[] args) {
+    int x = 1;
+    System.out.println(x++);
+    System.out.println(x);
+  }
+}`,
+      correct: "Ausgabe: 1\\n2",
+      wrong: ["Ausgabe: 2\\n2", "Ausgabe: 2\\n1", "Compilerfehler"],
+      ex: "Post-Inkrement: zuerst 1 ausgeben, danach x=2; zweite Ausgabe 2."
+    }
+  ];
+
+  for (let i=0;i<n;i++){
+    const b = base[i % base.length];
+
+    // leichte Variation in den Antwortoptionen, damit weniger Duplikate entstehen
+    const tweak = (i % 3);
+    let wrong = b.wrong.slice();
+
+    if (tweak === 1) {
+      // tausche eine Ablenkung aus
+      wrong = wrong.map(w => (w === "Ausgabe: 0" ? "Ausgabe: -1" : w));
+    } else if (tweak === 2) {
+      wrong = wrong.map(w => (w === "Ausgabe: (leer)" ? "Ausgabe: null" : w));
+    }
+
+    const {options, correctIndex} = mkSingleCorrectOptions(b.correct, wrong);
+    qs.push(mkQ({
+      title: b.title,
+      code: b.code,
+      options,
+      correctIndex,
+      explain: b.ex
+    }));
+  }
+  return qs;
+}
+
+/** NEW Topic: Textergänzung / Lücken (MC-Style) */
+function genFillBlanks(n) {
+  const qs = [];
+  const base = [
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`ArrayList<Integer> list = new ArrayList<>();
+for (int i = 0; i < list.____; i++) {
+  System.out.println(list.get(i));
+}`,
+      correct: "size()",
+      wrong: ["length", "count()", "getSize()"],
+      ex: "ArrayList hat size(), Arrays haben length."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`int[] a = {1,2,3};
+System.out.println(a.____);`,
+      correct: "length",
+      wrong: ["size()", "count()", "length()"],
+      ex: "Bei Arrays ist length ein Feld (ohne Klammern)."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`if (x > 0) {
+  System.out.println("A");
+____
+System.out.println("B");`,
+      correct: "}",
+      wrong: [";", ")", "{ }"],
+      ex: "Es fehlt die schließende geschweifte Klammer } für den Block."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`int x = 5____
+System.out.println(x);`,
+      correct: ";",
+      wrong: [":", ".", ","],
+      ex: "Nach einer Anweisung (Deklaration/Zuweisung) steht ein Semikolon ;."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`public static void main(____ args) { }`,
+      correct: "String[]",
+      wrong: ["String()", "string[]", "int[]"],
+      ex: "Main-Signatur: public static void main(String[] args)."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`System.out.println(____);`,
+      correct: "\"Die FOM\"",
+      wrong: ["'Die FOM'", "Die FOM", "\"Die FOM'"],
+      ex: "Strings stehen in doppelten Anführungszeichen \"."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`int x = 2;
+x ____ 3;
+System.out.println(x);`,
+      correct: "+=",
+      wrong: ["=+", "++", "=="],
+      ex: "x += 3 bedeutet x = x + 3."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`int x = 3;
+System.out.println(____x);`,
+      correct: "++",
+      wrong: ["--", "**", "%%"],
+      ex: "++x ist Prä-Inkrement (erst erhöhen, dann verwenden)."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`boolean a = true;
+boolean b = false;
+System.out.println(a ____ b);`,
+      correct: "||",
+      wrong: ["&&&", "| |", "OR"],
+      ex: "ODER-Operator ist || (Kurzschluss)."
+    },
+    {
+      title: "Textergänzung: Welche Ergänzung ist korrekt?",
+      code:
+`int[] a = {10,20};
+System.out.println(a[____]);`,
+      correct: "1",
+      wrong: ["2", "0+2", "-1"],
+      ex: "Index 1 ist das zweite Element (20)."
+    }
+  ];
+
+  for (let i=0;i<n;i++){
+    const b = base[i % base.length];
+
+    // kleine Variation: bei manchen Fragen wird die richtige Option als "size()" etc. gleich bleiben,
+    // aber Ablenkungen leicht drehen, damit es nicht zu häufig identisch ist.
+    let wrong = b.wrong.slice();
+    if (i % 4 === 1) wrong = wrong.reverse();
+    if (i % 4 === 2) wrong = [wrong[1], wrong[2], wrong[0]];
+    if (i % 4 === 3) wrong = [wrong[2], wrong[0], wrong[1]];
+
+    const {options, correctIndex} = mkSingleCorrectOptions(b.correct, wrong);
+    qs.push(mkQ({
+      title: b.title,
+      code: b.code,
+      options,
+      correctIndex,
+      explain: b.ex
+    }));
+  }
+  return qs;
+}
+
+/** ---------- Build (1000 total) ---------- **/
+function buildCatalog1000() {
   const catalog = [];
 
-  // Base (500)
+  // Base 500
   catalog.push(...genTools(40));
   catalog.push(...genArithmetic(120));
   catalog.push(...genIncrement(80));
@@ -589,11 +883,16 @@ function buildCatalog() {
   catalog.push(...genMethodsOOP(8));
   catalog.push(...genParsing(2));
 
-  // New focus topics
+  // Existing additions (200)
   catalog.push(...genArrayList(80));
   catalog.push(...genTransferSE(120));
 
-  assert(catalog.length >= 500, `Katalog ist zu klein: ${catalog.length}`);
+  // NEW: syntax traps + fill blanks (300)
+  catalog.push(...genSyntaxTraps(180));
+  catalog.push(...genFillBlanks(120));
+
+  // Hard target: exactly 1000
+  assert(catalog.length === 1000, `Katalog hat ${catalog.length} Fragen statt 1000.`);
   return catalog;
 }
 
@@ -804,7 +1103,7 @@ el("reviewOnlyWrongBtn").addEventListener("click", () => reset("wrong"));
 /** ---------- Boot ---------- **/
 (function boot(){
   try {
-    CATALOG = buildCatalog();
+    CATALOG = buildCatalog1000();
     validateCatalog(CATALOG);
     el("poolSize").textContent = String(CATALOG.length);
     reset("new");
