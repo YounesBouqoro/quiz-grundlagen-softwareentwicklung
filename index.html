@@ -438,10 +438,208 @@ function genParsing(n) {
   return qs;
 }
 
-/** ---------- Build 500-question catalog (strict topics) ---------- **/
-function buildCatalog500() {
-  const catalog = [];
-  // Tuned counts sum to 500 exactly
+  /** Topic: ArrayList (Java Collections Basics) */
+function genArrayList(n) {
+  const qs = [];
+  const base = [
+    {
+      q: "Welche Zeile erzeugt eine ArrayList für Integers korrekt?",
+      a: "ArrayList<Integer> list = new ArrayList<>();",
+      wrong: [
+        "ArrayList<int> list = new ArrayList<>();",
+        "ArrayList list = new ArrayList<int>();",
+        "ArrayList<Integer> list = new ArrayList<int>();"
+      ],
+      ex: "Generics brauchen Referenztypen (Integer statt int). Diamond-Operator <> ist erlaubt."
+    },
+    {
+      q: "Was liefert list.size()?",
+      a: "Anzahl der Elemente in der Liste",
+      wrong: ["Maximale Kapazität der Liste", "Letzten Index der Liste", "Immer die Länge 0..n-1"],
+      ex: "size() = Elementanzahl (kann sich ändern)."
+    },
+    {
+      q: "Welche Aussage ist korrekt?",
+      a: "ArrayList ist dynamisch vergrößerbar",
+      wrong: ["ArrayList hat feste Länge wie ein Array", "ArrayList speichert nur primitive Typen", "ArrayList ist automatisch sortiert"],
+      ex: "ArrayList wächst dynamisch; Sortierung nur mit zusätzlicher Logik (z.B. Collections.sort)."
+    },
+    {
+      q: "Wie greifst du auf das 1. Element zu?",
+      a: "list.get(0)",
+      wrong: ["list[0]", "list.get(1)", "list.first()"],
+      ex: "Index ist 0-basiert; Zugriff via get(index)."
+    },
+    {
+      q: "Was macht list.add(x)?",
+      a: "Fügt x am Ende hinzu",
+      wrong: ["Ersetzt das erste Element", "Löscht x, falls vorhanden", "Sortiert die Liste automatisch"],
+      ex: "add(E) hängt ans Ende (oder add(index,E) an Position)."
+    },
+    {
+      q: "Was passiert bei list.get(i) mit i außerhalb des Bereichs?",
+      a: "Exception",
+      wrong: ["Compilerfehler", "Gibt null zurück", "Gibt 0 zurück"],
+      ex: "Out-of-range → IndexOutOfBoundsException zur Laufzeit."
+    },
+    {
+      q: "Welche Schleife ist typisch, um alle Elemente zu durchlaufen?",
+      a: "for (int i=0; i<list.size(); i++)",
+      wrong: ["for (int i=0; i<=list.size(); i++)", "while(list.hasNext())", "loop(list)"],
+      ex: "Bedingung ist i < size(), nicht <=."
+    },
+    {
+      q: "Welche Aussage zu remove ist korrekt?",
+      a: "remove(int index) löscht an Position index",
+      wrong: ["remove(int index) löscht den Wert index immer als Element", "remove() gibt boolean zurück", "remove löscht nie, sondern markiert nur"],
+      ex: "Überladung: remove(index) vs remove(Object). Bei Integer kann das tricky sein."
+    }
+  ];
+
+  for (let i = 0; i < n; i++) {
+    const b = base[i % base.length];
+
+    // kleine Variation: bei jeder 2. Frage Code-Variante statt reinem Text
+    if (i % 2 === 0 && b.q.includes("ArrayList")) {
+      const title = "Welche Zeile ist korrekt?";
+      const code = `import java.util.*;\n\n// ...\n// Wähle die richtige Initialisierung`;
+      const { options, correctIndex } = mkSingleCorrectOptions(b.a, b.wrong);
+      qs.push(mkQ({ title, code, options, correctIndex, explain: b.ex }));
+    } else {
+      const { options, correctIndex } = mkSingleCorrectOptions(b.a, b.wrong);
+      qs.push(mkQ({ title: b.q, options, correctIndex, explain: b.ex }));
+    }
+  }
+  return qs;
+}
+
+/** Topic: Transfer / SE-Grundlagen (aus deinen 5 Textfragen) */
+function genTransferSE(n) {
+  const qs = [];
+  const base = [
+    // Frage 1: Lastenheft vs Pflichtenheft
+    {
+      q: "Lastenheft: Perspektive?",
+      a: "Auftraggeber",
+      wrong: ["Auftragnehmer", "Tester", "Entwicklerteam"],
+      ex: "Lastenheft beschreibt WAS das System leisten soll – aus Auftraggeber-Sicht."
+    },
+    {
+      q: "Pflichtenheft: Perspektive?",
+      a: "Auftragnehmer",
+      wrong: ["Auftraggeber", "Nutzer", "Projektcontrolling"],
+      ex: "Pflichtenheft beschreibt WIE Anforderungen umgesetzt werden – aus Auftragnehmer-Sicht."
+    },
+    {
+      q: "Welche 3 Elemente passen typischerweise ins Lastenheft?",
+      a: "Projektbeschreibung + Anforderungen + Rahmenbedingungen",
+      wrong: [
+        "Systemarchitektur + technische Umsetzung + Change-Management",
+        "Unit-Tests + Integrationstests + Abnahmetests",
+        "Code-Struktur + Klassenhierarchie + Methodenliste"
+      ],
+      ex: "Lastenheft: funktionale/nicht-funktionale Anforderungen + organisatorischer Rahmen (z.B. Budget/Einschränkungen)."
+    },
+    {
+      q: "Welche 3 Elemente passen typischerweise ins Pflichtenheft?",
+      a: "Systemarchitektur + technische Umsetzung + Zeit/Projektplan",
+      wrong: [
+        "Wünsche/Ziele + grobe Idee + Marketingstrategie",
+        "Budget + Einschränkungen + Projektbeschreibung",
+        "Stakeholderliste + Persona + Customer Journey"
+      ],
+      ex: "Pflichtenheft: Architektur, technische Umsetzung, Zeit-/Projektplan inkl. Change-Management."
+    },
+
+    // Frage 2: Top-Down vs Bottom-Up
+    {
+      q: "Top-Down beginnt typischerweise womit?",
+      a: "Übergeordneten Anforderungen",
+      wrong: ["Konkreten Details", "Unit-Tests", "Datenbanktabellen"],
+      ex: "Top-Down: vom Groben ins Detail; danach Validierung."
+    },
+    {
+      q: "Bottom-Up beginnt typischerweise womit?",
+      a: "Konkreten Details/Modulen",
+      wrong: ["Vision/Strategie", "Pflichtenheft", "Grobkonzept"],
+      ex: "Bottom-Up: Details → Module → Gesamtanforderungen; danach Validierung."
+    },
+
+    // Frage 3: Vorgehensmodelle
+    {
+      q: "Wasserfallmodell ist am besten beschrieben als …",
+      a: "Sequenziell: Phasen nacheinander",
+      wrong: ["Iterativ: kurze Zyklen", "Parallel: alle Phasen gleichzeitig", "Ohne Tests"],
+      ex: "Wasserfall: Analyse → Entwurf → Implementierung → Test (streng nacheinander)."
+    },
+    {
+      q: "Was ist der Kern-Unterschied V-Modell vs Wasserfall?",
+      a: "Jeder Entwicklungsphase ist eine Testphase zugeordnet",
+      wrong: ["Es gibt keine Tests", "Es ist immer agil", "Es hat keine Phasen"],
+      ex: "V-Modell koppelt Entwicklung + passende Testphase für Qualität/Nachvollziehbarkeit."
+    },
+    {
+      q: "Agil bedeutet hier primär …",
+      a: "Iterationen + flexible Anpassung + kontinuierlich lauffähige Software",
+      wrong: ["Nur einmal liefern am Ende", "Keine Dokumentation erlaubt", "Phasen strikt nacheinander"],
+      ex: "Agil: kurze Zyklen, Feedback, Anpassung, laufende Inkremente."
+    },
+
+    // Frage 4: Schwierigkeiten Anforderungsanalyse
+    {
+      q: "Welche Schwierigkeit ist typisch in der Anforderungsanalyse?",
+      a: "Kunde benennt Anforderungen unkonkret (nur Wünsche/Ziele)",
+      wrong: ["Anforderungen sind immer vollständig", "Fachleute sind immer verfügbar", "Es gibt nie Änderungen"],
+      ex: "Oft fehlen konkrete Anforderungen; nur Ziele/Wünsche werden geäußert."
+    },
+    {
+      q: "Was meint man mit 'hidden agenda' im Kontext Anforderungsanalyse?",
+      a: "Beteiligte verzerren Anforderungen bewusst/unbewusst",
+      wrong: ["Es gibt geheime Passwörter", "Der Code ist verschlüsselt", "Das Lastenheft ist automatisch korrekt"],
+      ex: "Analyseteam/Kunde können Interessen verfolgen und Anforderungen verzerren."
+    },
+    {
+      q: "Welche Aussage ist korrekt?",
+      a: "Selbstverständliche Anforderungen werden oft nicht erwähnt",
+      wrong: ["Selbstverständliches wird immer explizit genannt", "Nicht-funktionale Anforderungen gibt es nicht", "Änderungen kommen nur am Anfang vor"],
+      ex: "Viele Anforderungen gelten als 'klar' und werden nicht ausgesprochen – Risiko für Missverständnisse."
+    },
+
+    // Frage 5: Methoden Software Engineering
+    {
+      q: "Heuristische Methoden sind …",
+      a: "Erfahrungsbasierte Analyse-/Entwurfstechniken (z.B. OO-Modellierung)",
+      wrong: ["Mathematisch formal bewiesen", "Nur Prototypen ohne Struktur", "Reine Code-Formatierung"],
+      ex: "Heuristisch = praxis-/erfahrungsbasiert, strukturiert modellieren/entwerfen."
+    },
+    {
+      q: "Formale Methoden nutzen …",
+      a: "Mathematisch präzise Spezifikationen zur Prüfung von Konsistenz/Korrektheit",
+      wrong: ["Nur Bauchgefühl", "Nur UI-Mockups", "Nur Scrum-Meetings"],
+      ex: "Formal = mathematische Spezifikation + formale Verifikation."
+    },
+    {
+      q: "Prototyping dient hauptsächlich wozu?",
+      a: "Frühes Feedback + Validierung von Anforderungen/Funktionen",
+      wrong: ["Finale Version direkt ersetzen", "Tests komplett vermeiden", "Nur Dokumentation erzeugen"],
+      ex: "Prototypen: früh, unvollständig, zum Testen/Validieren/Feedback."
+    }
+  ];
+
+  for (let i = 0; i < n; i++) {
+    const b = base[i % base.length];
+    const { options, correctIndex } = mkSingleCorrectOptions(b.a, b.wrong);
+    qs.push(mkQ({ title: b.q, options, correctIndex, explain: b.ex }));
+  }
+  return qs;
+}
+
+
+/** ---------- Build (expandable) ---------- **/
+function buildCatalog() {
+  const = [];
+
+  // Base (dein bisheriger 500er Pool)
   catalog.push(...genTools(40));
   catalog.push(...genArithmetic(120));
   catalog.push(...genIncrement(80));
@@ -455,8 +653,12 @@ function buildCatalog500() {
   catalog.push(...genMethodsOOP(8));
   catalog.push(...genParsing(2));
 
-  // Ensure exactly 500
-  assert(catalog.length === 500, `Katalog hat ${catalog.length} Fragen statt 500.`);
+  // NEW: ArrayList + Transfer (Beispiel: +120 Fragen)
+  catalog.push(...genArrayList(80));
+  catalog.push(...genTransferSE(120));
+
+  // Kein hartes 500-Limit mehr – aber Mindestcheck
+  assert(catalog.length >= 500, `Katalog ist zu klein: ${catalog.length}`);
   return catalog;
 }
 
@@ -481,7 +683,7 @@ function validateCatalog(catalog) {
 
 /** ---------- Quiz Engine ---------- **/
 const QUIZ_SIZE = 12;
-let CATALOG = [];
+let = [];
 let quiz = [];
 let idx = 0;
 let score = 0;
@@ -668,7 +870,7 @@ el("reviewOnlyWrongBtn").addEventListener("click", () => reset("wrong"));
 /** ---------- Boot ---------- **/
 (function boot(){
   try {
-    CATALOG = buildCatalog500();
+    CATALOG = buildCatalog();
     validateCatalog(CATALOG);
     el("poolSize").textContent = String(CATALOG.length);
     reset("new");
